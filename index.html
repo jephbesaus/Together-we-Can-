@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Together We Can</title>
+<meta name="description" content="Together We Can — la communauté qui grandit ensemble : éducation, formation, opportunités, entrepreneuriat et plus." />
+<meta name="theme-color" content="#146C43" />
+
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="assets/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ============ ÉCRAN AUTHENTIFICATION ============ -->
+<section id="screen-auth" class="screen">
+  <div class="auth-brand">
+    <img src="assets/logo.png" alt="Together We Can" class="auth-logo" />
+    <h1 class="auth-tagline">Ensemble, nous pouvons grandir</h1>
+    <p class="auth-subtagline">Éducation · Formation · Opportunités · Entrepreneuriat</p>
+    <div class="auth-kernels" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <div class="auth-panel">
+    <div id="config-warning" class="config-warning hidden">
+      ⚠️ Supabase n'est pas encore configuré — ouvrez <code>js/config.js</code> pour connecter votre base de données. Voir <code>README.md</code>.
+    </div>
+
+    <div class="auth-tabs">
+      <button id="tab-login" class="auth-tab active">Se connecter</button>
+      <button id="tab-signup" class="auth-tab">S'inscrire</button>
+    </div>
+
+    <p id="auth-error" class="auth-error hidden"></p>
+
+    <!-- Connexion -->
+    <form id="login-form" class="auth-form">
+      <label class="field">
+        <span>Adresse Gmail</span>
+        <input type="email" id="login-email" placeholder="vous@gmail.com" required />
+      </label>
+      <label class="field">
+        <span>Mot de passe</span>
+        <input type="password" id="login-password" placeholder="••••••••" required />
+      </label>
+      <button type="submit" class="btn-primary">Se connecter</button>
+    </form>
+
+    <!-- Inscription -->
+    <form id="signup-form" class="auth-form hidden">
+      <label class="field">
+        <span>Nom complet</span>
+        <input type="text" id="signup-name" placeholder="Votre nom" required />
+      </label>
+      <label class="field">
+        <span>Numéro de téléphone</span>
+        <input type="tel" id="signup-phone" placeholder="+243 900 000 000" required />
+      </label>
+      <label class="field">
+        <span>Adresse Gmail</span>
+        <input type="email" id="signup-email" placeholder="vous@gmail.com" required />
+      </label>
+      <label class="field">
+        <span>Mot de passe</span>
+        <input type="password" id="signup-password" placeholder="6 caractères minimum" required />
+      </label>
+      <label class="field">
+        <span>Confirmer le mot de passe</span>
+        <input type="password" id="signup-confirm" placeholder="••••••••" required />
+      </label>
+      <button type="submit" class="btn-primary">S'inscrire</button>
+    </form>
+  </div>
+</section>
+
+<!-- ============ ÉCRAN APPLICATION (Accueil) ============ -->
+<section id="screen-app" class="screen hidden">
+  <header class="app-header">
+    <button id="btn-menu" class="icon-btn" aria-label="Ouvrir le menu">☰</button>
+    <div class="app-header-brand">
+      <img src="assets/icons/icon-96.png" alt="" class="app-header-logo" />
+      <span class="app-header-name">Together We Can</span>
+    </div>
+    <button class="icon-btn" aria-label="Notifications">🔔</button>
+  </header>
+
+  <p id="user-greeting" class="user-greeting"></p>
+
+  <main id="feed-container" class="feed"></main>
+
+  <nav id="bottom-nav" class="bottom-nav"></nav>
+</section>
+
+<!-- ============ DRAWER MENU (☰) ============ -->
+<div id="drawer-overlay" class="drawer-overlay hidden"></div>
+<aside id="drawer" class="drawer">
+  <div class="drawer-header">
+    <img src="assets/logo.png" alt="Together We Can" class="drawer-logo" />
+    <button id="btn-close-drawer" class="icon-btn" aria-label="Fermer le menu">✕</button>
+  </div>
+  <ul id="menu-list" class="menu-list"></ul>
+  <button id="btn-logout" class="btn-logout">🚪 Se déconnecter</button>
+</aside>
+
+<!-- ============ ÉCRAN SECTION (générique : toutes les sections) ============ -->
+<section id="screen-section" class="screen hidden">
+  <header class="app-header">
+    <button id="btn-back-section" class="icon-btn" aria-label="Retour">←</button>
+    <div class="app-header-brand">
+      <span id="section-title" class="app-header-name">Section</span>
+    </div>
+    <span class="icon-btn" style="visibility:hidden">☰</span>
+  </header>
+  <div id="section-body" class="section-body"></div>
+</section>
+
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/db.js"></script>
+<script src="js/push.js"></script>
+<script src="js/sections.js"></script>
+<script src="js/account.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
