@@ -3,19 +3,19 @@ const CACHE_NAME = "twc-cache-v1";
 const APP_SHELL = [
   "/index.html",
   "/manifest.json",
-  "/css/style.css",
-  "/js/config.js",
-  "/js/supabase-client.js",
-  "/js/auth.js",
-  "/js/db.js",
-  "/js/push.js",
-  "/js/sections.js",
-  "/js/account.js",
-  "/js/admin.js",
-  "/js/app.js",
-  "/assets/logo.png",
-  "/assets/icons/icon-192.png",
-  "/assets/icons/icon-512.png"
+  "/style.css",
+  "/config.js",
+  "/supabase-client.js",
+  "/auth.js",
+  "/db.js",
+  "/push.js",
+  "/sections.js",
+  "/account.js",
+  "/admin.js",
+  "/app.js",
+  "/logo.png",
+  "/icon-192.png",
+  "/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -46,8 +46,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: "/assets/icons/icon-192.png",
-      badge: "/assets/icons/icon-96.png",
+      icon: "/icon-192.png",
+      badge: "/icon-96.png",
       vibrate: [100, 50, 100],
     })
   );

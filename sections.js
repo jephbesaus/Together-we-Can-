@@ -401,7 +401,7 @@ function renderSupport(container, ctx) {
 function renderAbout(container) {
   container.innerHTML = `
     <div class="about-body">
-      <img src="assets/logo.png" class="about-logo" alt="Together We Can" />
+      <img src="logo.png" class="about-logo" alt="Together We Can" />
       <h2>Together We Can</h2>
       <p class="about-text"><strong>Présentation :</strong> Together We Can est une plateforme communautaire qui rassemble éducation, formation, opportunités, entrepreneuriat et talents pour aider chaque membre à grandir.</p>
       <p class="about-text"><strong>Vision :</strong> Bâtir une communauté solidaire où chacun peut apprendre, entreprendre et réussir ensemble.</p>

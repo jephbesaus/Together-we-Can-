@@ -323,7 +323,7 @@ async function renderFeed() {
             return `
       <article class="post-card post-card-official">
         <div class="post-header">
-          <div class="post-avatar post-avatar-official"><img src="assets/icons/icon-96.png" alt="" /></div>
+          <div class="post-avatar post-avatar-official"><img src="icon-96.png" alt="" /></div>
           <div>
             <p class="post-author">Together We Can <span class="verified-badge" title="Compte certifié">✅</span></p>
             <p class="post-meta"><span class="post-tag">${officialCategoryLabels[item.category] || item.category}</span> · ${formatDate(item.created_at)}</p>
