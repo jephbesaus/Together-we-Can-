@@ -23,11 +23,7 @@
 <section id="screen-auth" class="screen">
   <div class="auth-brand">
     <img src="logo.png" alt="Together We Can" class="auth-logo" />
-    <h1 class="auth-tagline">Ensemble, nous pouvons grandir</h1>
-    <p class="auth-subtagline">Éducation · Formation · Opportunités · Entrepreneuriat</p>
-    <div class="auth-kernels" aria-hidden="true">
-      <span></span><span></span><span></span><span></span>
-    </div>
+    <h1 class="auth-tagline">Together We Can</h1>
   </div>
 
   <div class="auth-panel">
@@ -90,10 +86,23 @@
       <img src="icon-96.png" alt="" class="app-header-logo" />
       <span class="app-header-name">Together We Can</span>
     </div>
-    <button class="icon-btn" aria-label="Notifications">🔔</button>
+    <button id="btn-notifications" class="icon-btn" aria-label="Notifications">🔔</button>
   </header>
 
+  <div id="notif-panel" class="notif-panel hidden">
+    <div class="notif-panel-head">
+      <strong>Notifications</strong>
+      <button id="btn-close-notif" class="icon-btn">✕</button>
+    </div>
+    <div id="notif-list" class="notif-list">
+      <p class="section-loading">Aucune notification pour l'instant.</p>
+    </div>
+  </div>
+
   <p id="user-greeting" class="user-greeting"></p>
+  <div class="discover-search">
+    <input type="text" id="discover-search-input" placeholder="🔍 Rechercher dans Together We Can..." />
+  </div>
 
   <main id="feed-container" class="feed"></main>
 
