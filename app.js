@@ -41,6 +41,12 @@ const SECTION_RENDERERS = {
   profil: (c, ctx) => renderProfile(c, ctx),
   equipe: (c, ctx) => renderTeam(c, ctx),
   points: (c, ctx) => renderPoints(c, ctx),
+  caisse: (c, ctx) => renderCaisse(c, ctx),
+  verification: (c, ctx) => renderVerification(c, ctx),
+  securite: (c, ctx) => renderSecurity(c, ctx),
+  activites: (c, ctx) => renderActivities(c, ctx),
+  publicProfile: (c, ctx) => renderPublicProfile(c, ctx),
+  dm: (c, ctx) => renderDirectMessageThread(c, ctx),
   admin: (c, ctx) => renderAdmin(c, ctx),
 };
 
@@ -90,14 +96,15 @@ function buildCtx() {
   };
 }
 
-function openSection(id, title) {
+function openSection(id, title, extra) {
   clearInterval(messagesPollTimer);
   sectionTitle.textContent = title;
   sectionBody.innerHTML = `<p class="section-loading">Chargement...</p>`;
   showScreen(screenSection);
   const renderer = SECTION_RENDERERS[id];
+  const ctx = Object.assign(buildCtx(), extra || {});
   if (renderer) {
-    renderer(sectionBody, buildCtx());
+    renderer(sectionBody, ctx);
   } else {
     sectionBody.innerHTML = `
       <div class="empty-state">
@@ -247,6 +254,13 @@ btnMenu.addEventListener("click", openDrawer);
 btnCloseDrawer.addEventListener("click", closeDrawer);
 drawerOverlay.addEventListener("click", closeDrawer);
 
+// ---------- Notifications ----------
+const btnNotifications = document.getElementById("btn-notifications");
+const notifPanel = document.getElementById("notif-panel");
+const btnCloseNotif = document.getElementById("btn-close-notif");
+btnNotifications.addEventListener("click", () => notifPanel.classList.toggle("hidden"));
+btnCloseNotif.addEventListener("click", () => notifPanel.classList.add("hidden"));
+
 // ---------- Bottom nav ----------
 function renderBottomNav() {
   bottomNav.innerHTML = "";
@@ -273,8 +287,13 @@ async function renderFeed() {
   feedContainer.innerHTML = `<p class="section-loading">Chargement...</p>`;
   let posts = [];
   let official = [];
+  let followedIds = [];
   try {
-    [posts, official] = await Promise.all([DB.listPosts(), DB.listRecentOfficialContent()]);
+    [posts, official, followedIds] = await Promise.all([
+      DB.listPosts(),
+      DB.listRecentOfficialContent(),
+      DB.myFollowedIds(TWCState.user.id),
+    ]);
   } catch (err) {
     feedContainer.innerHTML = `<p class="section-error">${esc(err.message)}</p>`;
     return;
@@ -294,15 +313,18 @@ async function renderFeed() {
     created_at: item.created_at,
   }));
   const postItems = posts.map((p) => ({ kind: "post", ...p }));
-  const feedItems = [...officialItems, ...postItems].sort(
+  let feedItems = [...officialItems, ...postItems].sort(
     (a, b) => new Date(b.created_at) - new Date(a.created_at)
   );
+  const followedSet = new Set(followedIds);
+  const priority = feedItems.filter((i) => i.kind === "post" && followedSet.has(i.author_id));
+  const rest = feedItems.filter((i) => !(i.kind === "post" && followedSet.has(i.author_id)));
+  feedItems = [...priority, ...rest];
 
   const composer = `
     <form id="post-form" class="inline-form card-form">
-      <textarea id="post-content" placeholder="Partagez quelque chose avec la communauté..." rows="2" required></textarea>
+      <textarea id="post-content" placeholder="Partagez quelque chose avec la communauté... (photo, vidéo, message, astuce)" rows="2" required></textarea>
       <button type="submit" class="btn-primary">Publier</button>
-      <p class="form-hint">📝 Votre publication sera visible après validation par l'administration.</p>
     </form>
   `;
 
@@ -339,16 +361,16 @@ async function renderFeed() {
           const isAdminAuthor = item.profiles?.is_admin;
           return `
       <article class="post-card ${isAdminAuthor ? "post-card-official" : ""}" data-id="${item.id}">
-        <div class="post-header">
+        <div class="post-header post-header-clickable" data-open-profile="${item.author_id}">
           <div class="post-avatar ${isAdminAuthor ? "post-avatar-official" : ""}">${(item.profiles?.full_name || "M").charAt(0).toUpperCase()}</div>
           <div>
-            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${isAdminAuthor ? '<span class="verified-badge" title="Compte certifié">✅</span>' : ""}</p>
+            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${isAdminAuthor ? '<span class="verified-badge" title="Compte certifié">✅</span>' : (item.profiles?.is_verified ? '<span class="verified-badge">✅</span>' : "")}</p>
             <p class="post-meta"><span class="post-tag">${esc(item.post_type)}</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
         <p class="post-content">${esc(item.content)}</p>
         <div class="post-actions">
-          <button class="post-action" data-like="${item.id}">❤️ <span>${item.likes_count || 0}</span></button>
+          <button class="post-action" data-like="${item.id}">💚 <span>${item.likes_count || 0}</span></button>
           <button class="post-action">💬 <span>${item.comments_count || 0}</span></button>
           <button class="post-action">🔗 Partager</button>
         </div>
@@ -363,6 +385,16 @@ async function renderFeed() {
           await DB.likePost(post);
           renderFeed();
         } catch (_) {}
+      })
+    );
+    feedContainer.querySelectorAll("[data-open-profile]").forEach((el) =>
+      el.addEventListener("click", () => {
+        const id = el.dataset.openProfile;
+        if (id === TWCState.user.id) {
+          openSection("profil", "Mon Profil");
+        } else {
+          openSection("publicProfile", "Profil", { targetUserId: id });
+        }
       })
     );
     feedContainer.querySelectorAll("[data-open-section]").forEach((btn) =>
@@ -381,13 +413,21 @@ async function renderFeed() {
     try {
       await DB.createPost(TWCState.user.id, content);
       textarea.value = "";
-      alert("✅ Publication envoyée, elle sera visible après validation par l'administration.");
       renderFeed();
     } catch (err) {
       alert("❌ " + err.message);
     }
   });
 }
+
+const discoverSearchInput = document.getElementById("discover-search-input");
+discoverSearchInput.addEventListener("input", () => {
+  const q = discoverSearchInput.value.trim().toLowerCase();
+  document.querySelectorAll(".post-card").forEach((card) => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = !q || text.includes(q) ? "" : "none";
+  });
+});
 
 // ---------- Enter app ----------
 async function enterApp() {
@@ -396,6 +436,14 @@ async function enterApp() {
     TWCState.profile = await DB.getProfile(TWCState.user.id);
   } catch (_) {
     TWCState.profile = { full_name: TWCState.user?.user_metadata?.full_name || "Membre", points: 0, is_admin: false };
+  }
+
+  if (TWCState.profile?.is_blocked) {
+    await TWCAuth.signOut();
+    showScreen(screenAuth);
+    setAuthTab("login");
+    showAuthError("Votre compte a été bloqué par l'administration. Contactez le support.");
+    return;
   }
 
   const name = TWCState.profile?.full_name || "Membre";
@@ -430,6 +478,6 @@ document.addEventListener("DOMContentLoaded", boot);
 // ---------- Service worker registration ----------
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+    navigator.serviceWorker.register("service-worker.js").catch(() => {});
   });
 }

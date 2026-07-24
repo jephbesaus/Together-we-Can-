@@ -1,21 +1,21 @@
 // Together We Can — Service Worker
 const CACHE_NAME = "twc-cache-v1";
 const APP_SHELL = [
-  "/index.html",
-  "/manifest.json",
-  "/style.css",
-  "/config.js",
-  "/supabase-client.js",
-  "/auth.js",
-  "/db.js",
-  "/push.js",
-  "/sections.js",
-  "/account.js",
-  "/admin.js",
-  "/app.js",
-  "/logo.png",
-  "/icon-192.png",
-  "/icon-512.png"
+  "index.html",
+  "manifest.json",
+  "style.css",
+  "config.js",
+  "supabase-client.js",
+  "auth.js",
+  "db.js",
+  "push.js",
+  "sections.js",
+  "account.js",
+  "admin.js",
+  "app.js",
+  "logo.png",
+  "icon-192.png",
+  "icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -46,8 +46,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: "/icon-192.png",
-      badge: "/icon-96.png",
+      icon: "icon-192.png",
+      badge: "icon-96.png",
       vibrate: [100, 50, 100],
     })
   );
@@ -58,7 +58,7 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     clients.matchAll({ type: "window" }).then((clientList) => {
       if (clientList.length > 0) return clientList[0].focus();
-      return clients.openWindow("/index.html");
+      return clients.openWindow("index.html");
     })
   );
 });
@@ -72,7 +72,7 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(() => caches.match("/index.html"))
+      fetch(request).catch(() => caches.match("index.html"))
     );
     return;
   }

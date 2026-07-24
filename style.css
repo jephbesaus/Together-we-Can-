@@ -4,12 +4,12 @@
    Type: Sora (display) / Inter (texte)
 ============================================================ */
 :root {
-  --twc-green-900: #0C3A21;
-  --twc-green-700: #146C43;
-  --twc-green-600: #1B8A55;
-  --twc-green-500: #2FA360;
-  --twc-green-100: #E4F5EA;
-  --twc-green-50:  #F5FBF7;
+  --twc-green-900: #042E2E;
+  --twc-green-700: #0B6E6E;
+  --twc-green-600: #0E8484;
+  --twc-green-500: #159999;
+  --twc-green-100: #E1F3F3;
+  --twc-green-50:  #F3FBFB;
   --twc-gold:      #F2B705;
   --twc-white:     #FFFFFF;
   --twc-ink:       #14251C;
@@ -52,56 +52,35 @@ input { font-family: inherit; }
 
 .auth-brand {
   position: relative;
-  background: linear-gradient(160deg, var(--twc-green-900) 0%, var(--twc-green-700) 55%, var(--twc-green-500) 100%);
+  background: linear-gradient(160deg, var(--twc-green-900) 0%, var(--twc-green-700) 100%);
   color: var(--twc-white);
-  padding: 48px 28px 40px;
+  padding: 18px 20px 16px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   overflow: hidden;
 }
 .auth-logo {
-  width: 128px;
-  height: 128px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--twc-white);
-  padding: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  padding: 3px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 .auth-tagline {
-  font-size: 1.4rem;
+  font-size: 1.02rem;
   font-weight: 800;
-  margin-top: 20px;
   letter-spacing: -0.01em;
+  text-align: left;
 }
 .auth-subtagline {
-  margin-top: 8px;
-  font-size: 0.92rem;
-  color: rgba(255,255,255,0.85);
+  display: none;
 }
-/* Signature element: growing "kernels" — nod to the corn in the logo,
-   reused later as a step-progress motif across onboarding flows */
 .auth-kernels {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 22px;
-}
-.auth-kernels span {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--twc-gold);
-  opacity: 0.35;
-  animation: kernel-glow 2.4s ease-in-out infinite;
-}
-.auth-kernels span:nth-child(2) { animation-delay: 0.2s; }
-.auth-kernels span:nth-child(3) { animation-delay: 0.4s; }
-.auth-kernels span:nth-child(4) { animation-delay: 0.6s; }
-@keyframes kernel-glow {
-  0%, 100% { opacity: 0.35; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.25); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .auth-kernels span { animation: none; opacity: 0.8; }
+  display: none;
 }
 
 .auth-panel {
@@ -232,6 +211,12 @@ input { font-family: inherit; }
   font-size: 1.15rem;
   color: var(--twc-green-900);
 }
+.discover-search { padding: 8px 16px 4px; }
+.discover-search input {
+  width: 100%; border: 1.5px solid var(--twc-border); border-radius: 999px;
+  padding: 11px 16px; font-size: 0.88rem; background: var(--twc-green-50); color: var(--twc-ink);
+}
+.post-header-clickable { cursor: pointer; }
 
 .feed {
   flex: 1;
@@ -298,6 +283,33 @@ input { font-family: inherit; }
 .nav-item.active { color: var(--twc-green-700); }
 .nav-icon { font-size: 1.15rem; }
 .nav-label { font-size: 0.66rem; font-weight: 700; }
+
+/* Fond bas de page (barre de navigation) et en-têtes en vert pétrole */
+.bottom-nav { background: var(--twc-green-900); border-top: none; }
+.nav-item { color: rgba(255,255,255,0.6); }
+.nav-item.active { color: var(--twc-white); }
+.app-header { background: var(--twc-green-700); border-bottom: none; }
+.app-header-name { color: var(--twc-white); }
+.app-header .icon-btn { background: rgba(255,255,255,0.15); color: var(--twc-white); }
+
+.notif-panel {
+  position: fixed;
+  top: 60px; right: 12px; left: 12px;
+  max-width: 360px; margin-left: auto;
+  background: var(--twc-white);
+  border: 1px solid var(--twc-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-drawer);
+  z-index: 25;
+  overflow: hidden;
+}
+.notif-panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--twc-border);
+  color: var(--twc-green-900);
+}
+.notif-panel-head .icon-btn { background: var(--twc-green-100); color: var(--twc-green-700); }
+.notif-list { padding: 14px; max-height: 300px; overflow-y: auto; }
 
 /* ============================================================
    DRAWER (menu ☰)
@@ -534,11 +546,37 @@ input { font-family: inherit; }
   padding: 14px 16px; font-size: 0.85rem; color: var(--twc-green-900);
   margin-bottom: 16px; line-height: 1.6;
 }
+.operator-list { display: flex; flex-direction: column; gap: 8px; }
+.operator-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--twc-white); border: 1px solid var(--twc-border);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+}
+.operator-logo { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; background: var(--twc-white); }
+.profile-menu { display: flex; flex-direction: column; gap: 8px; }
+.profile-menu-item {
+  text-align: left; background: var(--twc-white); border: 1px solid var(--twc-border);
+  border-radius: var(--radius-sm); padding: 13px 16px; font-weight: 600; font-size: 0.9rem; color: var(--twc-ink);
+}
+.profile-menu-item:hover { background: var(--twc-green-50); }
 
 /* ---------- À propos ---------- */
 .about-body { text-align: center; padding: 20px 6px; }
 .about-logo { width: 90px; height: 90px; border-radius: 50%; margin-bottom: 16px; }
 .about-text { text-align: left; font-size: 0.9rem; line-height: 1.6; color: var(--twc-ink); margin-top: 12px; }
+.about-subtitle { text-align: left; margin-top: 20px; color: var(--twc-green-700); font-size: 0.98rem; }
+.founder-card {
+  display: flex; align-items: center; gap: 14px; text-align: left;
+  background: var(--twc-green-50); border-radius: var(--radius-md);
+  padding: 14px; margin-top: 16px;
+}
+.founder-photo { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.founder-name { font-weight: 700; color: var(--twc-green-900); font-size: 0.92rem; }
+.founder-role { font-size: 0.78rem; color: var(--twc-gray); margin-top: 2px; }
+.motto-box {
+  margin-top: 24px; padding: 16px; background: var(--twc-green-900); color: var(--twc-white);
+  border-radius: var(--radius-md); font-style: italic; font-size: 0.88rem; line-height: 1.5;
+}
 
 @media (min-width: 860px) {
   .section-body { padding-bottom: 30px; }

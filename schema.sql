@@ -73,7 +73,7 @@ create table if not exists public.posts (
   image_url text,
   likes_count integer default 0,
   comments_count integer default 0,
-  is_approved boolean default false, -- les publications attendent la validation admin
+  is_approved boolean default true, -- publication immédiate ; l'admin peut supprimer a posteriori
   created_at timestamptz default now()
 );
 
@@ -209,8 +209,8 @@ create policy "Un utilisateur modifie son propre profil" on public.profiles
   for update using (auth.uid() = id or public.is_admin());
 
 -- ---- POSTS ----
-create policy "Publications approuvées visibles par tous, brouillons par auteur/admin" on public.posts
-  for select using (is_approved = true or auth.uid() = author_id or public.is_admin());
+create policy "Tout le monde peut lire les publications" on public.posts
+  for select using (true);
 create policy "Un utilisateur crée ses publications" on public.posts
   for insert with check (auth.uid() = author_id);
 create policy "Auteur ou admin modifie" on public.posts

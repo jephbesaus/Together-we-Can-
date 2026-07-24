@@ -23,8 +23,7 @@ const DB = {
   async listPosts() {
     const { data, error } = await supabaseClient
       .from("posts")
-      .select("*, profiles(full_name, is_admin)")
-      .eq("is_approved", true)
+      .select("*, profiles(full_name, is_admin, is_verified)")
       .order("created_at", { ascending: false })
       .limit(30);
     if (error) throw error;
@@ -265,21 +264,195 @@ const DB = {
     if (error) throw error;
     return data;
   },
-  async adminListPendingPosts() {
+  async adminListRecentPosts() {
     const { data, error } = await supabaseClient
       .from("posts")
       .select("*, profiles(full_name)")
-      .eq("is_approved", false)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    return data;
+  },
+  async adminDeletePost(id) {
+    const { error } = await supabaseClient.from("posts").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  // ---------- Suivi (follow) ----------
+  async isFollowing(followerId, followedId) {
+    const { data } = await supabaseClient
+      .from("follows")
+      .select("*")
+      .eq("follower_id", followerId)
+      .eq("followed_id", followedId)
+      .maybeSingle();
+    return !!data;
+  },
+  async follow(followerId, followedId) {
+    const { error } = await supabaseClient.from("follows").insert({ follower_id: followerId, followed_id: followedId });
+    if (error) throw error;
+  },
+  async unfollow(followerId, followedId) {
+    const { error } = await supabaseClient
+      .from("follows")
+      .delete()
+      .eq("follower_id", followerId)
+      .eq("followed_id", followedId);
+    if (error) throw error;
+  },
+  async myFollowedIds(userId) {
+    const { data, error } = await supabaseClient.from("follows").select("followed_id").eq("follower_id", userId);
+    if (error) throw error;
+    return (data || []).map((f) => f.followed_id);
+  },
+  async getPublicProfile(userId) {
+    const { data, error } = await supabaseClient.from("profiles").select("*").eq("id", userId).single();
+    if (error) throw error;
+    return data;
+  },
+
+  // ---------- Messagerie entre membres ----------
+  async searchProfiles(query) {
+    const { data, error } = await supabaseClient
+      .from("profiles")
+      .select("id, full_name, avatar_url, is_verified")
+      .ilike("full_name", `%${query}%`)
+      .limit(20);
+    if (error) throw error;
+    return data;
+  },
+  async myConversationPartners(userId) {
+    const { data, error } = await supabaseClient
+      .from("direct_messages")
+      .select("sender_id, receiver_id, profiles!direct_messages_sender_id_fkey(full_name), profiles!direct_messages_receiver_id_fkey(full_name)")
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    const seen = new Map();
+    (data || []).forEach((m) => {
+      const otherId = m.sender_id === userId ? m.receiver_id : m.sender_id;
+      if (!seen.has(otherId)) seen.set(otherId, otherId);
+    });
+    return [...seen.keys()];
+  },
+  async listDirectMessages(userId, otherId) {
+    const { data, error } = await supabaseClient
+      .from("direct_messages")
+      .select("*")
+      .or(`and(sender_id.eq.${userId},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${userId})`)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data;
+  },
+  async sendDirectMessage(senderId, receiverId, content) {
+    const { error } = await supabaseClient.from("direct_messages").insert({ sender_id: senderId, receiver_id: receiverId, content });
+    if (error) throw error;
+  },
+
+  // ---------- Vérification (badge) ----------
+  async submitVerification(payload) {
+    const { error } = await supabaseClient.from("verification_requests").insert(payload);
+    if (error) throw error;
+  },
+  async myVerificationRequests(userId) {
+    const { data, error } = await supabaseClient
+      .from("verification_requests")
+      .select("*")
+      .eq("user_id", userId)
       .order("created_at", { ascending: false });
     if (error) throw error;
     return data;
   },
-  async adminApprovePost(id) {
-    const { error } = await supabaseClient.from("posts").update({ is_approved: true }).eq("id", id);
+
+  // ---------- Ma caisse (portefeuille) ----------
+  async createTopup(payload) {
+    const { error } = await supabaseClient.from("wallet_topups").insert(payload);
     if (error) throw error;
   },
-  async adminRejectPost(id) {
-    const { error } = await supabaseClient.from("posts").delete().eq("id", id);
+  async myTopups(userId) {
+    const { data, error } = await supabaseClient
+      .from("wallet_topups")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+  async createWithdrawal(userId, paymentNumber, amount) {
+    const { error } = await supabaseClient
+      .from("withdrawal_requests")
+      .insert({ user_id: userId, payment_number: paymentNumber, amount });
+    if (error) throw error;
+  },
+  async myWithdrawals(userId) {
+    const { data, error } = await supabaseClient
+      .from("withdrawal_requests")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  // ---------- Admin : nouvelles fonctions ----------
+  async adminListVerifications() {
+    const { data, error } = await supabaseClient
+      .from("verification_requests")
+      .select("*, profiles(full_name, phone)")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+  async adminApproveVerification(id) {
+    const { error } = await supabaseClient.rpc("admin_approve_verification", { p_request_id: id });
+    if (error) throw error;
+  },
+  async adminRejectVerification(id) {
+    const { error } = await supabaseClient.from("verification_requests").update({ status: "rejetee" }).eq("id", id);
+    if (error) throw error;
+  },
+  async adminListTopups() {
+    const { data, error } = await supabaseClient
+      .from("wallet_topups")
+      .select("*, profiles(full_name, phone)")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+  async adminApproveTopup(id) {
+    const { error } = await supabaseClient.rpc("admin_approve_topup", { p_request_id: id });
+    if (error) throw error;
+  },
+  async adminRejectTopup(id) {
+    const { error } = await supabaseClient.from("wallet_topups").update({ status: "rejetee" }).eq("id", id);
+    if (error) throw error;
+  },
+  async adminListWithdrawals() {
+    const { data, error } = await supabaseClient
+      .from("withdrawal_requests")
+      .select("*, profiles(full_name, phone)")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+  async adminApproveWithdrawal(id) {
+    const { error } = await supabaseClient.rpc("admin_approve_withdrawal", { p_request_id: id });
+    if (error) throw error;
+  },
+  async adminRejectWithdrawal(id) {
+    const { error } = await supabaseClient.from("withdrawal_requests").update({ status: "rejetee" }).eq("id", id);
+    if (error) throw error;
+  },
+  async adminFinalizeReward(id, amountFc) {
+    const { error } = await supabaseClient.rpc("admin_finalize_reward", { p_request_id: id, p_amount_fc: amountFc });
+    if (error) throw error;
+  },
+  async adminSetBlocked(userId, blocked) {
+    const { error } = await supabaseClient.rpc("admin_set_blocked", { p_user_id: userId, p_blocked: blocked });
+    if (error) throw error;
+  },
+  async adminRenameUser(userId, newName) {
+    const { error } = await supabaseClient.rpc("admin_rename_user", { p_user_id: userId, p_new_name: newName });
     if (error) throw error;
   },
 

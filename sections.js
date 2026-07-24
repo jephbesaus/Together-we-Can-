@@ -402,10 +402,42 @@ function renderAbout(container) {
   container.innerHTML = `
     <div class="about-body">
       <img src="logo.png" class="about-logo" alt="Together We Can" />
-      <h2>Together We Can</h2>
-      <p class="about-text"><strong>Présentation :</strong> Together We Can est une plateforme communautaire qui rassemble éducation, formation, opportunités, entrepreneuriat et talents pour aider chaque membre à grandir.</p>
-      <p class="about-text"><strong>Vision :</strong> Bâtir une communauté solidaire où chacun peut apprendre, entreprendre et réussir ensemble.</p>
-      <p class="about-text"><strong>Historique :</strong> Née de la conviction qu'ensemble, nous pouvons aller plus loin.</p>
+      <h2>TOGETHER WE CAN (TWC)</h2>
+
+      <div class="founder-card">
+        <img src="founder.png" alt="Joseph Baliwa (Jeph Besaus)" class="founder-photo" />
+        <div>
+          <p class="founder-name">Joseph Baliwa — « Jeph Besaus »</p>
+          <p class="founder-role">Fondateur de Together We Can</p>
+          <p class="founder-role">En collaboration avec Musambya Lubunga</p>
+        </div>
+      </div>
+
+      <h3 class="about-subtitle">Dénomination</h3>
+      <p class="about-text">Together We Can (TWC), qui signifie en français « Ensemble, nous pouvons », est une initiative communautaire fondée pour promouvoir l'entraide, le développement personnel, l'innovation et la solidarité. Elle rassemble des jeunes et des adultes autour d'une même conviction : ensemble, il est possible de construire un avenir meilleur.</p>
+
+      <h3 class="about-subtitle">Historique</h3>
+      <p class="about-text">Together We Can a été fondé le 3 septembre 2025 par Joseph Baliwa, plus connu sous le nom de Jeph Besaus, à la clôture de l'année scolaire 2025-2026. Face aux défis rencontrés par de nombreux jeunes, il a eu la vision de créer un mouvement capable d'encourager la formation, l'entrepreneuriat, la collaboration, le leadership et le développement communautaire.</p>
+
+      <h3 class="about-subtitle">Vision</h3>
+      <p class="about-text">Être une communauté de référence qui inspire, forme et accompagne les jeunes afin qu'ils deviennent des acteurs du changement, capables de bâtir une société plus responsable, solidaire, innovante et prospère.</p>
+
+      <h3 class="about-subtitle">Objectifs</h3>
+      <p class="about-text">Encourager l'éducation et la formation continue · Promouvoir l'entrepreneuriat et l'autonomisation des jeunes · Développer le leadership · Renforcer la solidarité entre les membres · Valoriser les talents artistiques, sportifs et créatifs · Favoriser le marketing numérique et les opportunités économiques.</p>
+
+      <h3 class="about-subtitle">Fonctionnement</h3>
+      <p class="about-text">Réunions et formations, sensibilisation, développement de projets communautaires, promotion des talents et de l'entrepreneuriat, accompagnement des membres, communication via les plateformes numériques.</p>
+
+      <h3 class="about-subtitle">Organisation</h3>
+      <p class="about-text">Président/Fondateur · Vice-président · Secrétaire · Trésorier · Responsables des commissions · Membres actifs.</p>
+
+      <h3 class="about-subtitle">Nos plateformes officielles</h3>
+      <p class="about-text">
+        <a href="https://www.facebook.com/profile.php?id=61591784764691" target="_blank" rel="noopener">📘 Page Facebook</a><br/>
+        <a href="https://wa.me/qr/SOIPLGOZ4DYOH1" target="_blank" rel="noopener">💬 Groupe WhatsApp</a>
+      </p>
+
+      <div class="motto-box">« Seul, nous pouvons faire peu ; ensemble, nous pouvons transformer notre communauté et construire un avenir meilleur. »</div>
     </div>
   `;
 }
