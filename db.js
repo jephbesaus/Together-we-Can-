@@ -3,6 +3,43 @@
 // ============================================================
 
 const DB = {
+  // Réessaie automatiquement en cas de coupure réseau (jusqu'à 2 fois, avec pause)
+  async _withRetry(fn, retries = 2) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        return await fn();
+      } catch (err) {
+        const isNetworkError = err?.message?.toLowerCase().includes("fetch") || err?.message?.toLowerCase().includes("network");
+        if (!isNetworkError || attempt === retries) throw err;
+        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+      }
+    }
+  },
+
+  async listNotifications(userId) {
+    const { data, error } = await supabaseClient
+      .from("notifications")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (error) throw error;
+    return data;
+  },
+  async countUnreadNotifications(userId) {
+    const { count, error } = await supabaseClient
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("is_read", false);
+    if (error) throw error;
+    return count || 0;
+  },
+  async markAllNotificationsRead(userId) {
+    const { error } = await supabaseClient.from("notifications").update({ is_read: true }).eq("user_id", userId).eq("is_read", false);
+    if (error) throw error;
+  },
+
   // ---------- Profil ----------
   async getProfile(userId) {
     const { data, error } = await supabaseClient
@@ -15,8 +52,10 @@ const DB = {
   },
 
   async updateProfile(userId, fields) {
-    const { error } = await supabaseClient.from("profiles").update(fields).eq("id", userId);
-    if (error) throw error;
+    return DB._withRetry(async () => {
+      const { error } = await supabaseClient.from("profiles").update(fields).eq("id", userId);
+      if (error) throw error;
+    });
   },
 
   // ---------- Fil d'accueil (posts) ----------
@@ -52,10 +91,12 @@ const DB = {
   },
 
   async createPost(authorId, content, postType = "publication", imageUrl = null) {
-    const { error } = await supabaseClient
-      .from("posts")
-      .insert({ author_id: authorId, content, post_type: postType, image_url: imageUrl });
-    if (error) throw error;
+    return DB._withRetry(async () => {
+      const { error } = await supabaseClient
+        .from("posts")
+        .insert({ author_id: authorId, content, post_type: postType, image_url: imageUrl });
+      if (error) throw error;
+    });
   },
 
   async setReaction(postId, emoji) {
@@ -227,12 +268,14 @@ const DB = {
 
   // ---------- Upload média (avatars, produits, publications) ----------
   async uploadMedia(file, folder) {
-    const ext = file.name.split(".").pop();
-    const path = `${folder}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabaseClient.storage.from("twc-media").upload(path, file);
-    if (error) throw error;
-    const { data } = supabaseClient.storage.from("twc-media").getPublicUrl(path);
-    return data.publicUrl;
+    return DB._withRetry(async () => {
+      const ext = file.name.split(".").pop();
+      const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabaseClient.storage.from("twc-media").upload(path, file);
+      if (error) throw error;
+      const { data } = supabaseClient.storage.from("twc-media").getPublicUrl(path);
+      return data.publicUrl;
+    });
   },
 
   async handleReferral(referralCode, newUserId) {

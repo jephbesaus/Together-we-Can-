@@ -260,7 +260,7 @@ function renderMenu() {
   drawerProfileBlock.innerHTML = `
     <div class="drawer-avatar">${p.avatar_url ? `<img src="${p.avatar_url}" alt="" />` : (p.full_name || "M").charAt(0).toUpperCase()}</div>
     <div>
-      <p class="drawer-name">${esc(p.full_name || "Membre")}${p.is_verified ? ' <img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
+      <p class="drawer-name">${esc(p.full_name || "Membre")}${p.is_verified ? ' <img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
       <p class="drawer-meta">Membre depuis ${joinYear}</p>
     </div>
   `;
@@ -317,7 +317,31 @@ drawerOverlay.addEventListener("click", closeDrawer);
 const btnNotifications = document.getElementById("btn-notifications");
 const notifPanel = document.getElementById("notif-panel");
 const btnCloseNotif = document.getElementById("btn-close-notif");
-btnNotifications.addEventListener("click", () => notifPanel.classList.toggle("hidden"));
+const notifList = document.getElementById("notif-list");
+const notifDot = document.getElementById("notif-dot");
+
+async function loadNotifBadge() {
+  try {
+    const count = await DB.countUnreadNotifications(TWCState.user.id);
+    notifDot.classList.toggle("hidden", count === 0);
+  } catch (_) {}
+}
+
+btnNotifications.addEventListener("click", async () => {
+  notifPanel.classList.toggle("hidden");
+  if (notifPanel.classList.contains("hidden")) return;
+  notifList.innerHTML = `<p class="section-loading">Chargement...</p>`;
+  try {
+    const items = await DB.listNotifications(TWCState.user.id);
+    notifList.innerHTML = items.length
+      ? items.map((n) => `<div class="notif-item"><strong>${esc(n.title)}</strong><p>${esc(n.body || "")}</p><span>${formatDate(n.created_at)}</span></div>`).join("")
+      : `<p class="section-loading">Aucune notification pour l'instant.</p>`;
+    await DB.markAllNotificationsRead(TWCState.user.id);
+    notifDot.classList.add("hidden");
+  } catch (err) {
+    notifList.innerHTML = `<p class="section-error">${esc(err.message)}</p>`;
+  }
+});
 btnCloseNotif.addEventListener("click", () => notifPanel.classList.add("hidden"));
 
 // ---------- Bottom nav ----------
@@ -429,9 +453,9 @@ async function renderFeed() {
             return `
       <article class="post-card post-card-official">
         <div class="post-header">
-          <div class="post-avatar post-avatar-official"><img src="icon-96.png" alt="" /></div>
+          <div class="post-avatar post-avatar-official"><img src="assets/icons/icon-96.png" alt="" /></div>
           <div>
-            <p class="post-author">Together We Can <img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" /></p>
+            <p class="post-author">Together We Can <img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" /></p>
             <p class="post-meta"><span class="post-tag">${officialCategoryLabels[item.category] || item.category}</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
@@ -448,7 +472,7 @@ async function renderFeed() {
         <div class="post-header post-header-clickable" data-open-profile="${item.author_id}">
           <div class="post-avatar">${(item.profiles?.full_name || "M").charAt(0).toUpperCase()}</div>
           <div>
-            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
+            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
             <p class="post-meta"><span class="post-tag">🎨 Art</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
@@ -462,7 +486,7 @@ async function renderFeed() {
         <div class="post-header post-header-clickable" data-open-profile="${item.author_id}">
           <div class="post-avatar">${(item.profiles?.full_name || "M").charAt(0).toUpperCase()}</div>
           <div>
-            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
+            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
             <p class="post-meta"><span class="post-tag">🛒 Marketplace</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
@@ -484,7 +508,7 @@ async function renderFeed() {
           <div>
             <p class="post-author">
               <span class="post-header-clickable" data-open-profile="${item.author_id}">${esc(item.profiles?.full_name || "Membre")}</span>
-              ${(isAdminAuthor || item.profiles?.is_verified) ? '<img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}
+              ${(isAdminAuthor || item.profiles?.is_verified) ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}
               ${!isOwnPost && !alreadyFollowed ? `<span class="inline-follow" data-quick-follow="${item.author_id}"> · Suivre</span>` : ""}
             </p>
             <p class="post-meta"><span class="post-tag">${esc(item.post_type)}</span> · ${formatDate(item.created_at)}</p>
@@ -686,6 +710,7 @@ async function enterApp() {
   renderFeed();
   showScreen(screenApp);
   enablePushNotifications(TWCState.user.id);
+  loadNotifBadge();
 }
 
 // ---------- Boot ----------
@@ -711,6 +736,22 @@ document.addEventListener("DOMContentLoaded", boot);
 // ---------- Service worker registration ----------
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    navigator.serviceWorker.register("service-worker.js").then((registration) => {
+      // Vérifie régulièrement s'il existe une nouvelle version
+      setInterval(() => registration.update(), 60 * 1000);
+
+      registration.addEventListener("updatefound", () => {
+        const newWorker = registration.installing;
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "activated") {
+            // Nouvelle version installée : rafraîchit automatiquement une seule fois
+            if (!sessionStorage.getItem("twc_reloaded_for_update")) {
+              sessionStorage.setItem("twc_reloaded_for_update", "1");
+              window.location.reload();
+            }
+          }
+        });
+      });
+    }).catch(() => {});
   });
 }

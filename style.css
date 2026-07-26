@@ -329,6 +329,15 @@ input { font-family: inherit; }
 }
 .notif-panel-head .icon-btn { background: var(--twc-green-100); color: var(--twc-green-700); }
 .notif-list { padding: 14px; max-height: 300px; overflow-y: auto; }
+.notif-dot {
+  position: absolute; top: 6px; right: 6px;
+  width: 9px; height: 9px; border-radius: 50%; background: #E53935; border: 2px solid var(--twc-white);
+}
+.icon-btn { position: relative; }
+.notif-item { padding: 10px 0; border-bottom: 1px solid var(--twc-border); }
+.notif-item strong { font-size: 0.86rem; color: var(--twc-green-900); }
+.notif-item p { font-size: 0.82rem; color: var(--twc-ink); margin-top: 2px; }
+.notif-item span { font-size: 0.72rem; color: var(--twc-gray); }
 
 /* ============================================================
    DRAWER (menu ☰)

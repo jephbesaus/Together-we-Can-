@@ -1,5 +1,5 @@
 // Together We Can — Service Worker
-const CACHE_NAME = "twc-cache-v2";
+const CACHE_NAME = "twc-cache-v3";
 const APP_SHELL = [
   "index.html",
   "manifest.json",
@@ -70,23 +70,17 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request).catch(() => caches.match("index.html"))
-    );
-    return;
-  }
-
+  // Réseau en priorité pour tout (app à jour automatiquement) — le cache
+  // ne sert que de secours si le réseau est indisponible (mode hors-ligne)
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          return response;
-        })
-        .catch(() => cached);
-    })
+    fetch(request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        return response;
+      })
+      .catch(() =>
+        caches.match(request).then((cached) => cached || (request.mode === "navigate" ? caches.match("index.html") : undefined))
+      )
   );
 });
