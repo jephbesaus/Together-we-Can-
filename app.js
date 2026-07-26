@@ -261,7 +261,7 @@ function renderMenu() {
     <div class="drawer-avatar">${p.avatar_url ? `<img src="${p.avatar_url}" alt="" />` : (p.full_name || "M").charAt(0).toUpperCase()}</div>
     <div>
       <p class="drawer-name">${esc(p.full_name || "Membre")}</p>
-      <p class="drawer-meta">${p.is_verified ? '<span class="verified-badge">✅</span> ' : ""}Membre depuis ${joinYear}</p>
+      <p class="drawer-meta">${p.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" /> ' : ""}Membre depuis ${joinYear}</p>
     </div>
   `;
 
@@ -403,6 +403,11 @@ async function renderFeed() {
   const composer = `
     <form id="post-form" class="inline-form card-form">
       <textarea id="post-content" placeholder="Partagez quelque chose avec la communauté... (photo, vidéo, message, astuce)" rows="2" required></textarea>
+      <div id="post-media-preview"></div>
+      <div class="composer-media-row">
+        <label class="composer-media-btn">🖼️ Photo<input type="file" id="post-photo-input" accept="image/*" hidden /></label>
+        <label class="composer-media-btn">🎬 Vidéo<input type="file" id="post-video-input" accept="video/*" hidden /></label>
+      </div>
       <button type="submit" class="btn-primary">Publier</button>
     </form>
   `;
@@ -424,9 +429,9 @@ async function renderFeed() {
             return `
       <article class="post-card post-card-official">
         <div class="post-header">
-          <div class="post-avatar post-avatar-official"><img src="icon-96.png" alt="" /></div>
+          <div class="post-avatar post-avatar-official"><img src="assets/icons/icon-96.png" alt="" /></div>
           <div>
-            <p class="post-author">Together We Can <span class="verified-badge" title="Compte certifié"></span></p>
+            <p class="post-author">Together We Can <img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" /></p>
             <p class="post-meta"><span class="post-tag">${officialCategoryLabels[item.category] || item.category}</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
@@ -443,7 +448,7 @@ async function renderFeed() {
         <div class="post-header post-header-clickable" data-open-profile="${item.author_id}">
           <div class="post-avatar">${(item.profiles?.full_name || "M").charAt(0).toUpperCase()}</div>
           <div>
-            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<span class="verified-badge"></span>' : ""}</p>
+            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
             <p class="post-meta"><span class="post-tag">🎨 Art</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
@@ -457,7 +462,7 @@ async function renderFeed() {
         <div class="post-header post-header-clickable" data-open-profile="${item.author_id}">
           <div class="post-avatar">${(item.profiles?.full_name || "M").charAt(0).toUpperCase()}</div>
           <div>
-            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<span class="verified-badge"></span>' : ""}</p>
+            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
             <p class="post-meta"><span class="post-tag">🛒 Marketplace</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
@@ -475,13 +480,18 @@ async function renderFeed() {
         <div class="post-header post-header-clickable" data-open-profile="${item.author_id}">
           <div class="post-avatar ${isAdminAuthor ? "post-avatar-official" : ""}">${(item.profiles?.full_name || "M").charAt(0).toUpperCase()}</div>
           <div>
-            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${isAdminAuthor ? '<span class="verified-badge" title="Compte certifié">✅</span>' : (item.profiles?.is_verified ? '<span class="verified-badge">✅</span>' : "")}</p>
+            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${isAdminAuthor ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : (item.profiles?.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : "")}</p>
             <p class="post-meta"><span class="post-tag">${esc(item.post_type)}</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
         <p class="post-content">${esc(item.content)}</p>
+        ${item.image_url ? (
+          /\.(mp4|webm|mov)(\?|$)/i.test(item.image_url)
+            ? `<video src="${esc(item.image_url)}" class="post-media" controls></video>`
+            : `<img src="${esc(item.image_url)}" class="post-media" alt="" />`
+        ) : ""}
         <div class="post-actions">
-          <button class="post-action" data-react-toggle="${item.id}">${myReactions[item.id] || "👍"} <span>${item.likes_count || 0}</span></button>
+          <button class="post-action ${myReactions[item.id] ? "" : ""}" data-react-toggle="${item.id}">${myReactions[item.id] || "👍"} <span>${item.likes_count || 0}</span></button>
           <button class="post-action" data-comment="${item.id}">💬 <span>${item.comments_count || 0}</span></button>
           <button class="post-action">🔗 Partager</button>
         </div>
@@ -544,17 +554,47 @@ async function renderFeed() {
     );
   }
 
+  let selectedMediaFile = null;
+  const mediaPreview = feedContainer.querySelector("#post-media-preview");
+  const photoInput = feedContainer.querySelector("#post-photo-input");
+  const videoInput = feedContainer.querySelector("#post-video-input");
+
+  function showPreview(file) {
+    selectedMediaFile = file;
+    const url = URL.createObjectURL(file);
+    const isVideo = file.type.startsWith("video");
+    mediaPreview.innerHTML = isVideo
+      ? `<video src="${url}" class="composer-preview" controls></video><button type="button" class="btn-secondary" id="btn-remove-media">✕ Retirer</button>`
+      : `<img src="${url}" class="composer-preview" /><button type="button" class="btn-secondary" id="btn-remove-media">✕ Retirer</button>`;
+    mediaPreview.querySelector("#btn-remove-media").addEventListener("click", () => {
+      selectedMediaFile = null;
+      mediaPreview.innerHTML = "";
+      photoInput.value = "";
+      videoInput.value = "";
+    });
+  }
+  photoInput.addEventListener("change", () => photoInput.files[0] && showPreview(photoInput.files[0]));
+  videoInput.addEventListener("change", () => videoInput.files[0] && showPreview(videoInput.files[0]));
+
   feedContainer.querySelector("#post-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const textarea = feedContainer.querySelector("#post-content");
     const content = textarea.value.trim();
     if (!content) return;
+    const submitBtn = e.target.querySelector("button[type=submit]");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Publication...";
     try {
-      await DB.createPost(TWCState.user.id, content);
+      let mediaUrl = null;
+      if (selectedMediaFile) mediaUrl = await DB.uploadMedia(selectedMediaFile, "posts");
+      await DB.createPost(TWCState.user.id, content, "publication", mediaUrl);
       textarea.value = "";
+      selectedMediaFile = null;
       renderFeed();
     } catch (err) {
       alert("❌ " + err.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Publier";
     }
   });
 }
