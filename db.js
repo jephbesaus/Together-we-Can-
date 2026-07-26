@@ -51,10 +51,10 @@ const DB = {
     return data;
   },
 
-  async createPost(authorId, content, postType = "publication") {
+  async createPost(authorId, content, postType = "publication", imageUrl = null) {
     const { error } = await supabaseClient
       .from("posts")
-      .insert({ author_id: authorId, content, post_type: postType });
+      .insert({ author_id: authorId, content, post_type: postType, image_url: imageUrl });
     if (error) throw error;
   },
 
