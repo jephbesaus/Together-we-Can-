@@ -23,7 +23,7 @@ const DB = {
   async listPosts() {
     const { data, error } = await supabaseClient
       .from("posts")
-      .select("*, profiles(full_name, is_admin, is_verified)")
+      .select("*, profiles!author_id(full_name, is_admin, is_verified)")
       .order("created_at", { ascending: false })
       .limit(30);
     if (error) throw error;
@@ -33,7 +33,7 @@ const DB = {
   async listRecentOfficialContent() {
     const { data, error } = await supabaseClient
       .from("content_items")
-      .select("*, profiles(full_name, is_admin, is_verified, avatar_url)")
+      .select("*, profiles!author_id(full_name, is_admin, is_verified, avatar_url)")
       .order("created_at", { ascending: false })
       .limit(15);
     if (error) throw error;
@@ -43,7 +43,7 @@ const DB = {
   async listRecentMarketplaceForFeed() {
     const { data, error } = await supabaseClient
       .from("marketplace_products")
-      .select("*, profiles(full_name, is_admin, is_verified, avatar_url)")
+      .select("*, profiles!seller_id(full_name, is_admin, is_verified, avatar_url)")
       .eq("is_sold", false)
       .order("created_at", { ascending: false })
       .limit(15);
@@ -89,7 +89,7 @@ const DB = {
   async listComments(postId) {
     const { data, error } = await supabaseClient
       .from("post_comments")
-      .select("*, profiles(full_name)")
+      .select("*, profiles!user_id(full_name)")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
     if (error) throw error;
@@ -147,7 +147,7 @@ const DB = {
   async listProducts() {
     const { data, error } = await supabaseClient
       .from("marketplace_products")
-      .select("*, profiles(full_name, phone)")
+      .select("*, profiles!seller_id(full_name, phone)")
       .order("created_at", { ascending: false });
     if (error) throw error;
     return data;
@@ -243,7 +243,7 @@ const DB = {
   async adminListApplications() {
     const { data, error } = await supabaseClient
       .from("applications")
-      .select("*, content_items(title), profiles(full_name, phone)")
+      .select("*, content_items(title), profiles!user_id(full_name, phone)")
       .order("created_at", { ascending: false });
     if (error) throw error;
     return data;
@@ -255,7 +255,7 @@ const DB = {
   async adminListBoosts() {
     const { data, error } = await supabaseClient
       .from("boost_requests")
-      .select("*, profiles(full_name, phone)")
+      .select("*, profiles!user_id(full_name, phone)")
       .order("created_at", { ascending: false });
     if (error) throw error;
     return data;
@@ -267,7 +267,7 @@ const DB = {
   async adminListRewardRequests() {
     const { data, error } = await supabaseClient
       .from("reward_requests")
-      .select("*, profiles(full_name, phone, points)")
+      .select("*, profiles!user_id(full_name, phone, points)")
       .order("created_at", { ascending: false });
     if (error) throw error;
     return data;
@@ -305,7 +305,7 @@ const DB = {
   async adminListAllMessages() {
     const { data, error } = await supabaseClient
       .from("messages")
-      .select("*, profiles(full_name)")
+      .select("*, profiles!user_id(full_name)")
       .order("created_at", { ascending: false });
     if (error) throw error;
     return data;
@@ -313,7 +313,7 @@ const DB = {
   async adminListRecentPosts() {
     const { data, error } = await supabaseClient
       .from("posts")
-      .select("*, profiles(full_name)")
+      .select("*, profiles!author_id(full_name)")
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) throw error;
@@ -444,7 +444,7 @@ const DB = {
   async adminListVerifications() {
     const { data, error } = await supabaseClient
       .from("verification_requests")
-      .select("*, profiles(full_name, phone)")
+      .select("*, profiles!user_id(full_name, phone)")
       .order("created_at", { ascending: false });
     if (error) throw error;
     return data;
@@ -460,7 +460,7 @@ const DB = {
   async adminListTopups() {
     const { data, error } = await supabaseClient
       .from("wallet_topups")
-      .select("*, profiles(full_name, phone)")
+      .select("*, profiles!user_id(full_name, phone)")
       .order("created_at", { ascending: false });
     if (error) throw error;
     return data;
@@ -476,7 +476,7 @@ const DB = {
   async adminListWithdrawals() {
     const { data, error } = await supabaseClient
       .from("withdrawal_requests")
-      .select("*, profiles(full_name, phone)")
+      .select("*, profiles!user_id(full_name, phone)")
       .order("created_at", { ascending: false });
     if (error) throw error;
     return data;

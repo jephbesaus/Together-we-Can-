@@ -1,5 +1,5 @@
 // Together We Can — Service Worker
-const CACHE_NAME = "twc-cache-v1";
+const CACHE_NAME = "twc-cache-v2";
 const APP_SHELL = [
   "index.html",
   "manifest.json",
