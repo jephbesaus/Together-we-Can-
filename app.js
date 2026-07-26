@@ -260,7 +260,7 @@ function renderMenu() {
   drawerProfileBlock.innerHTML = `
     <div class="drawer-avatar">${p.avatar_url ? `<img src="${p.avatar_url}" alt="" />` : (p.full_name || "M").charAt(0).toUpperCase()}</div>
     <div>
-      <p class="drawer-name">${esc(p.full_name || "Membre")}${p.is_verified ? ' <img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
+      <p class="drawer-name">${esc(p.full_name || "Membre")}${p.is_verified ? ' <img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
       <p class="drawer-meta">Membre depuis ${joinYear}</p>
     </div>
   `;
@@ -429,9 +429,9 @@ async function renderFeed() {
             return `
       <article class="post-card post-card-official">
         <div class="post-header">
-          <div class="post-avatar post-avatar-official"><img src="assets/icons/icon-96.png" alt="" /></div>
+          <div class="post-avatar post-avatar-official"><img src="icon-96.png" alt="" /></div>
           <div>
-            <p class="post-author">Together We Can <img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" /></p>
+            <p class="post-author">Together We Can <img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" /></p>
             <p class="post-meta"><span class="post-tag">${officialCategoryLabels[item.category] || item.category}</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
@@ -448,7 +448,7 @@ async function renderFeed() {
         <div class="post-header post-header-clickable" data-open-profile="${item.author_id}">
           <div class="post-avatar">${(item.profiles?.full_name || "M").charAt(0).toUpperCase()}</div>
           <div>
-            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
+            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
             <p class="post-meta"><span class="post-tag">🎨 Art</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
@@ -462,7 +462,7 @@ async function renderFeed() {
         <div class="post-header post-header-clickable" data-open-profile="${item.author_id}">
           <div class="post-avatar">${(item.profiles?.full_name || "M").charAt(0).toUpperCase()}</div>
           <div>
-            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
+            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${item.profiles?.is_verified ? '<img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
             <p class="post-meta"><span class="post-tag">🛒 Marketplace</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
@@ -484,7 +484,7 @@ async function renderFeed() {
           <div>
             <p class="post-author">
               <span class="post-header-clickable" data-open-profile="${item.author_id}">${esc(item.profiles?.full_name || "Membre")}</span>
-              ${(isAdminAuthor || item.profiles?.is_verified) ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}
+              ${(isAdminAuthor || item.profiles?.is_verified) ? '<img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}
               ${!isOwnPost && !alreadyFollowed ? `<span class="inline-follow" data-quick-follow="${item.author_id}"> · Suivre</span>` : ""}
             </p>
             <p class="post-meta"><span class="post-tag">${esc(item.post_type)}</span> · ${formatDate(item.created_at)}</p>

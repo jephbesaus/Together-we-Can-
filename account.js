@@ -22,7 +22,7 @@ async function renderPublicProfile(container, ctx) {
     <div class="profile-head">
       <div class="profile-avatar">${(profile.full_name || "M").charAt(0).toUpperCase()}</div>
       <div>
-        <h2>${esc(profile.full_name || "Membre")} ${profile.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</h2>
+        <h2>${esc(profile.full_name || "Membre")} ${profile.is_verified ? '<img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</h2>
         <p class="content-card-meta">${followerCount} abonné${followerCount > 1 ? "s" : ""}</p>
       </div>
     </div>
@@ -151,7 +151,7 @@ async function renderMemberConversations(container, ctx) {
         .filter((p) => p.id !== ctx.user.id)
         .map(
           (p) => `<article class="content-card" data-open="${p.id}" data-name="${esc(p.full_name || "Membre")}">
-          <h3>${esc(p.full_name || "Membre")} ${p.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</h3>
+          <h3>${esc(p.full_name || "Membre")} ${p.is_verified ? '<img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</h3>
         </article>`
         )
         .join("");
@@ -173,7 +173,7 @@ async function renderMemberConversations(container, ctx) {
       .filter(Boolean)
       .map(
         (p) => `<article class="content-card" data-open="${p.id}" data-name="${esc(p.full_name || "Membre")}">
-        <h3>${esc(p.full_name || "Membre")} ${p.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</h3>
+        <h3>${esc(p.full_name || "Membre")} ${p.is_verified ? '<img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</h3>
       </article>`
       )
       .join("");
@@ -247,7 +247,7 @@ async function renderProfile(container, ctx) {
     <div class="profile-head">
       <div class="profile-avatar">${(p.full_name || "M").charAt(0).toUpperCase()}</div>
       <div>
-        <h2>${esc(p.full_name || "Membre")} ${p.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</h2>
+        <h2>${esc(p.full_name || "Membre")} ${p.is_verified ? '<img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</h2>
         <p class="content-card-meta">${esc(p.phone || "")} · ${followerCount} abonné${followerCount > 1 ? "s" : ""}</p>
       </div>
     </div>
@@ -385,10 +385,10 @@ async function renderTeam(container, ctx) {
 
 // ---------- Ma caisse (portefeuille) ----------
 const OPERATORS = [
-  { key: "airtel", label: "Airtel", number: "0961105201", logo: "assets/operators/airtel.png" },
-  { key: "vodacom", label: "Vodacom", number: "08000410630", logo: "assets/operators/vodacom.png" },
-  { key: "orange", label: "Orange", number: "0850504961", logo: "assets/operators/orange.png" },
-  { key: "africell", label: "Africell", number: "289026", logo: "assets/operators/africell.png" },
+  { key: "airtel", label: "Airtel", number: "0961105201", logo: "airtel.png" },
+  { key: "vodacom", label: "Vodacom", number: "08000410630", logo: "vodacom.png" },
+  { key: "orange", label: "Orange", number: "0850504961", logo: "orange.png" },
+  { key: "africell", label: "Africell", number: "289026", logo: "africell.png" },
 ];
 
 async function renderCaisse(container, ctx) {

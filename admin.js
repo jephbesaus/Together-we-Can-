@@ -78,7 +78,7 @@ async function renderAdminUsers(body) {
   body.innerHTML = `<div class="card-list">${users
     .map(
       (u) => `<article class="content-card" data-id="${u.id}">
-      <div class="content-card-head"><h3>${esc(u.full_name || "Membre")}</h3>${u.is_admin ? '<span class="badge badge-gold">Admin</span>' : ""}${u.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}${u.is_blocked ? '<span class="badge badge-danger">Bloqué</span>' : ""}</div>
+      <div class="content-card-head"><h3>${esc(u.full_name || "Membre")}</h3>${u.is_admin ? '<span class="badge badge-gold">Admin</span>' : ""}${u.is_verified ? '<img src="verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}${u.is_blocked ? '<span class="badge badge-danger">Bloqué</span>' : ""}</div>
       <p class="content-card-meta">${esc(u.phone || "")} · ${u.points || 0} pts · ${u.balance_fc || 0} FC · Code: ${u.referral_code}</p>
       <div class="content-card-actions">
         <button class="btn-secondary" data-rename="${u.id}">✏️ Renommer</button>
