@@ -260,8 +260,8 @@ function renderMenu() {
   drawerProfileBlock.innerHTML = `
     <div class="drawer-avatar">${p.avatar_url ? `<img src="${p.avatar_url}" alt="" />` : (p.full_name || "M").charAt(0).toUpperCase()}</div>
     <div>
-      <p class="drawer-name">${esc(p.full_name || "Membre")}</p>
-      <p class="drawer-meta">${p.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" /> ' : ""}Membre depuis ${joinYear}</p>
+      <p class="drawer-name">${esc(p.full_name || "Membre")}${p.is_verified ? ' <img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}</p>
+      <p class="drawer-meta">Membre depuis ${joinYear}</p>
     </div>
   `;
 
@@ -475,12 +475,18 @@ async function renderFeed() {
       </article>`;
           }
           const isAdminAuthor = item.profiles?.is_admin;
+          const isOwnPost = item.author_id === TWCState.user.id;
+          const alreadyFollowed = followedSet.has(item.author_id);
           return `
       <article class="post-card ${isAdminAuthor ? "post-card-official" : ""}" data-id="${item.id}">
-        <div class="post-header post-header-clickable" data-open-profile="${item.author_id}">
-          <div class="post-avatar ${isAdminAuthor ? "post-avatar-official" : ""}">${(item.profiles?.full_name || "M").charAt(0).toUpperCase()}</div>
+        <div class="post-header">
+          <div class="post-avatar post-header-clickable ${isAdminAuthor ? "post-avatar-official" : ""}" data-open-profile="${item.author_id}">${item.profiles?.avatar_url ? `<img src="${esc(item.profiles.avatar_url)}" alt="" />` : (item.profiles?.full_name || "M").charAt(0).toUpperCase()}</div>
           <div>
-            <p class="post-author">${esc(item.profiles?.full_name || "Membre")} ${isAdminAuthor ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : (item.profiles?.is_verified ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : "")}</p>
+            <p class="post-author">
+              <span class="post-header-clickable" data-open-profile="${item.author_id}">${esc(item.profiles?.full_name || "Membre")}</span>
+              ${(isAdminAuthor || item.profiles?.is_verified) ? '<img src="assets/verified-badge.png" class="verified-badge-img" alt="Vérifié" />' : ""}
+              ${!isOwnPost && !alreadyFollowed ? `<span class="inline-follow" data-quick-follow="${item.author_id}"> · Suivre</span>` : ""}
+            </p>
             <p class="post-meta"><span class="post-tag">${esc(item.post_type)}</span> · ${formatDate(item.created_at)}</p>
           </div>
         </div>
@@ -534,6 +540,17 @@ async function renderFeed() {
           return;
         }
         openSection("dm", btn.dataset.buyname, { targetUserId: sellerId, targetName: btn.dataset.buyname });
+      })
+    );
+    feedContainer.querySelectorAll("[data-quick-follow]").forEach((el) =>
+      el.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        try {
+          await DB.follow(TWCState.user.id, el.dataset.quickFollow);
+          renderFeed();
+        } catch (err) {
+          alert("❌ " + err.message);
+        }
       })
     );
     feedContainer.querySelectorAll("[data-open-profile]").forEach((el) =>

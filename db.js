@@ -23,7 +23,7 @@ const DB = {
   async listPosts() {
     const { data, error } = await supabaseClient
       .from("posts")
-      .select("*, profiles!author_id(full_name, is_admin, is_verified)")
+      .select("*, profiles!author_id(full_name, is_admin, is_verified, avatar_url)")
       .order("created_at", { ascending: false })
       .limit(30);
     if (error) throw error;
@@ -98,7 +98,11 @@ const DB = {
   async addComment(postId, userId, content) {
     const { error } = await supabaseClient.from("post_comments").insert({ post_id: postId, user_id: userId, content });
     if (error) throw error;
-    await supabaseClient.rpc("increment_comment_count", { p_post_id: postId }).catch(() => {});
+    try {
+      await supabaseClient.rpc("increment_comment_count", { p_post_id: postId });
+    } catch (_) {
+      // le compteur est secondaire, on n'échoue pas la publication du commentaire pour ça
+    }
   },
 
   // ---------- Contenu générique (Éducation, Formation, Opportunités,
