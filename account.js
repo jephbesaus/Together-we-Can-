@@ -252,9 +252,17 @@ async function renderProfile(container, ctx) {
       </div>
     </div>
 
+    <div class="balance-hero">
+      <div>
+        <span class="balance-hero-label">Solde principal</span>
+        <strong class="balance-hero-amount">${p.balance_fc || 0} FC</strong>
+      </div>
+      <button class="btn-primary balance-hero-btn" id="btn-recharger">➕ Recharger</button>
+    </div>
+
     <div class="stat-row">
       <div class="stat-box"><strong>${p.points || 0}</strong><span>Points</span></div>
-      <div class="stat-box"><strong>${p.balance_fc || 0} FC</strong><span>Solde</span></div>
+      <div class="stat-box"><strong>${followerCount}</strong><span>Abonnés</span></div>
     </div>
 
     <form id="profile-form" class="inline-form card-form">
@@ -274,6 +282,7 @@ async function renderProfile(container, ctx) {
     <h3 class="list-title">Mon compte</h3>
     <div class="profile-menu">
       <button class="profile-menu-item" data-goto="caisse">💰 Ma caisse</button>
+      <button class="profile-menu-item" data-goto="points">🏆 Mes points</button>
       <button class="profile-menu-item" data-goto="verification">${p.is_verified ? "✅ Compte vérifié" : "🛡️ Vérifier mon compte"}</button>
       <button class="profile-menu-item" data-goto="securite">🔒 Sécurité</button>
       <button class="profile-menu-item" data-goto="activites">📋 Mes activités</button>
@@ -305,10 +314,11 @@ async function renderProfile(container, ctx) {
 
   container.querySelectorAll("[data-goto]").forEach((btn) =>
     btn.addEventListener("click", () => {
-      const map = { caisse: "Ma caisse", verification: "Vérification", securite: "Sécurité", activites: "Mes activités", about: "À propos" };
+      const map = { caisse: "Ma caisse", points: "Mes points", verification: "Vérification", securite: "Sécurité", activites: "Mes activités", about: "À propos" };
       openSection(btn.dataset.goto, map[btn.dataset.goto]);
     })
   );
+  container.querySelector("#btn-recharger").addEventListener("click", () => openSection("caisse", "Ma caisse"));
 
   container.querySelector("#btn-copy-link").addEventListener("click", () => {
     const input = container.querySelector("#share-input");

@@ -339,6 +339,43 @@ input { font-family: inherit; }
 .notif-item p { font-size: 0.82rem; color: var(--twc-ink); margin-top: 2px; }
 .notif-item span { font-size: 0.72rem; color: var(--twc-gray); }
 
+.balance-hero {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--twc-green-900); color: var(--twc-white);
+  border-radius: var(--radius-md); padding: 18px 20px; margin-bottom: 16px;
+}
+.balance-hero-label { font-size: 0.78rem; opacity: 0.8; display: block; }
+.balance-hero-amount { font-family: "Sora", sans-serif; font-size: 1.5rem; display: block; margin-top: 2px; }
+.balance-hero-btn { background: var(--twc-gold); color: var(--twc-green-900); padding: 10px 16px; margin-top: 0; font-size: 0.85rem; }
+
+.nav-fab {
+  flex: 0 0 auto; width: 54px; height: 54px; border-radius: 50%;
+  background: var(--twc-green-600); color: var(--twc-white);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: -26px; box-shadow: 0 4px 14px rgba(34,197,94,0.5);
+  border: 4px solid var(--twc-white);
+}
+.nav-fab-icon { font-size: 1.5rem; font-weight: 800; }
+
+.publish-sheet-overlay {
+  position: fixed; inset: 0; background: rgba(10,74,31,0.5);
+  display: flex; align-items: flex-end; z-index: 60;
+}
+.publish-sheet {
+  background: var(--twc-white); width: 100%; border-radius: 20px 20px 0 0;
+  padding: 20px 18px calc(20px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 10px;
+}
+.publish-sheet h3 { font-size: 1rem; color: var(--twc-green-900); margin-bottom: 4px; }
+.publish-sheet-btn {
+  text-align: left; padding: 14px 16px; border-radius: var(--radius-sm);
+  background: var(--twc-green-50); border: none; font-size: 0.94rem; font-weight: 600; color: var(--twc-ink);
+}
+.publish-sheet-cancel {
+  padding: 14px; border-radius: var(--radius-sm); background: none; border: none;
+  color: var(--twc-gray); font-weight: 700; text-align: center; margin-top: 4px;
+}
+
 /* ============================================================
    DRAWER (menu ☰)
 ============================================================ */
@@ -548,6 +585,20 @@ input { font-family: inherit; }
 .form-status.success { background: var(--twc-green-100); color: var(--twc-green-700); }
 .form-status.error { background: #FDECEC; color: #B3261E; }
 .composer-media-row { display: flex; gap: 10px; }
+.compact-composer { padding: 12px 14px; gap: 8px; }
+.compact-composer textarea {
+  border: none; background: var(--twc-green-50); border-radius: var(--radius-sm);
+  padding: 10px 12px; font-size: 0.88rem; resize: none; min-height: 38px;
+}
+.compact-composer #post-media-preview:empty { display: none; }
+.compact-composer .composer-media-row { align-items: center; gap: 8px; }
+.composer-media-btn-sm {
+  width: 38px; height: 38px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--twc-green-50); border: 1.5px solid var(--twc-green-100);
+  border-radius: 50%; font-size: 1rem; cursor: pointer;
+}
+.composer-submit-sm { flex: 1; padding: 9px; font-size: 0.86rem; margin-top: 0; }
 .composer-media-btn {
   flex: 1; text-align: center; background: var(--twc-green-50);
   border: 1.5px dashed var(--twc-green-500); border-radius: var(--radius-sm);

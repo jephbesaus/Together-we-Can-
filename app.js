@@ -35,9 +35,9 @@ const MENU_GROUPS = [
 const BOTTOM_NAV = [
   { id: "decouvrir", icon: "🌍", label: "Découvrir" },
   { id: "messages", icon: "💬", label: "Messages" },
-  { id: "profil", icon: "👤", label: "Profil" },
+  { id: "publier", icon: "➕", label: "" },
   { id: "equipe", icon: "🤝", label: "Équipe" },
-  { id: "points", icon: "💰", label: "Points" },
+  { id: "profil", icon: "👤", label: "Profil" },
 ];
 
 // Registre : id de section -> fonction de rendu (container, ctx)
@@ -349,6 +349,13 @@ function renderBottomNav() {
   bottomNav.innerHTML = "";
   BOTTOM_NAV.forEach((item, index) => {
     const btn = document.createElement("button");
+    if (item.id === "publier") {
+      btn.className = "nav-item nav-fab";
+      btn.innerHTML = `<span class="nav-fab-icon">${item.icon}</span>`;
+      btn.addEventListener("click", openPublishSheet);
+      bottomNav.appendChild(btn);
+      return;
+    }
     btn.className = "nav-item" + (index === 0 ? " active" : "");
     btn.innerHTML = `<span class="nav-icon">${item.icon}</span><span class="nav-label">${item.label}</span>`;
     btn.addEventListener("click", () => {
@@ -363,6 +370,45 @@ function renderBottomNav() {
     });
     bottomNav.appendChild(btn);
   });
+}
+
+// ---------- Bouton central : publier rapidement ----------
+function openPublishSheet() {
+  const sheet = document.createElement("div");
+  sheet.className = "publish-sheet-overlay";
+  sheet.innerHTML = `
+    <div class="publish-sheet">
+      <h3>Publier quelque chose</h3>
+      <button class="publish-sheet-btn" data-mode="text">📝 Texte</button>
+      <button class="publish-sheet-btn" data-mode="photo">🖼️ Photo</button>
+      <button class="publish-sheet-btn" data-mode="video">🎬 Vidéo</button>
+      <button class="publish-sheet-cancel">Annuler</button>
+    </div>
+  `;
+  document.body.appendChild(sheet);
+
+  function close() {
+    sheet.remove();
+  }
+  sheet.addEventListener("click", (e) => {
+    if (e.target === sheet) close();
+  });
+  sheet.querySelector(".publish-sheet-cancel").addEventListener("click", close);
+  sheet.querySelectorAll("[data-mode]").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      close();
+      document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
+      bottomNav.querySelector(".nav-item")?.classList.add("active");
+      showScreen(screenApp);
+      renderFeed().then(() => {
+        const textarea = document.getElementById("post-content");
+        textarea?.scrollIntoView({ behavior: "smooth", block: "center" });
+        textarea?.focus();
+        if (btn.dataset.mode === "photo") document.getElementById("post-photo-input")?.click();
+        if (btn.dataset.mode === "video") document.getElementById("post-video-input")?.click();
+      });
+    })
+  );
 }
 
 // ---------- Feed (page d'accueil) ----------
@@ -425,14 +471,14 @@ async function renderFeed() {
   feedItems = [...priority, ...rest];
 
   const composer = `
-    <form id="post-form" class="inline-form card-form">
-      <textarea id="post-content" placeholder="Partagez quelque chose avec la communauté... (photo, vidéo, message, astuce)" rows="2" required></textarea>
+    <form id="post-form" class="inline-form card-form compact-composer">
+      <textarea id="post-content" placeholder="Partagez quelque chose..." rows="1" required></textarea>
       <div id="post-media-preview"></div>
       <div class="composer-media-row">
-        <label class="composer-media-btn">🖼️ Photo<input type="file" id="post-photo-input" accept="image/*" hidden /></label>
-        <label class="composer-media-btn">🎬 Vidéo<input type="file" id="post-video-input" accept="video/*" hidden /></label>
+        <label class="composer-media-btn-sm">🖼️<input type="file" id="post-photo-input" accept="image/*" hidden /></label>
+        <label class="composer-media-btn-sm">🎬<input type="file" id="post-video-input" accept="video/*" hidden /></label>
+        <button type="submit" class="btn-primary composer-submit-sm">Publier</button>
       </div>
-      <button type="submit" class="btn-primary">Publier</button>
     </form>
   `;
 
