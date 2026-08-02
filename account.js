@@ -394,13 +394,6 @@ async function renderTeam(container, ctx) {
 }
 
 // ---------- Ma caisse (portefeuille) ----------
-const OPERATORS = [
-  { key: "airtel", label: "Airtel", number: "0961105201", logo: "airtel.png" },
-  { key: "vodacom", label: "Vodacom", number: "08000410630", logo: "vodacom.png" },
-  { key: "orange", label: "Orange", number: "0850504961", logo: "orange.png" },
-  { key: "africell", label: "Africell", number: "289026", logo: "africell.png" },
-];
-
 async function renderCaisse(container, ctx) {
   let topups = [];
   try {
@@ -413,66 +406,18 @@ async function renderCaisse(container, ctx) {
     </div>
     <p class="rules-box">💡 Effectuez vos opérations ici pour avoir un solde suffisant pour vos commandes dans l'application (vérification, services, etc.).</p>
 
-    <h3 class="list-title">Paiement Mobile Money</h3>
-    <div class="operator-list">
-      ${OPERATORS.map((o) => `
-        <div class="operator-row">
-          <img src="${o.logo}" alt="${o.label}" class="operator-logo" />
-          <div><strong>${o.label}</strong><p class="content-card-meta">${o.number}</p></div>
-        </div>`).join("")}
+    <div class="empty-state">
+      <div class="placeholder-badge">⏳</div>
+      <h2>Rechargement bientôt disponible</h2>
+      <p>Le paiement via <strong>Money Fusion</strong> arrive très bientôt. Vous pourrez recharger votre solde directement ici.</p>
     </div>
 
-    <div class="content-card" style="margin-top:14px;">
-      <p class="content-card-body">🔜 Paiement en crypto-monnaie — Bientôt disponible</p>
-      <p class="content-card-body">🔜 Paiement bancaire — Bientôt disponible</p>
-    </div>
-
-    <form id="topup-form" class="inline-form card-form" style="margin-top:16px;">
-      <label class="field"><span>Opérateur utilisé</span>
-        <select name="operator" required>
-          ${OPERATORS.map((o) => `<option value="${o.label}">${o.label}</option>`).join("")}
-        </select>
-      </label>
-      <label class="field"><span>Montant envoyé (FC)</span><input type="number" name="amount" min="1" required /></label>
-      <label class="field"><span>Capture d'écran du paiement</span><input type="file" name="proof" accept="image/*" required /></label>
-      <button type="submit" class="btn-primary">J'ai payé</button>
-      <p class="form-status hidden"></p>
-    </form>
-
-    <h3 class="list-title">Historique</h3>
-    <div class="card-list">
-      ${
-        topups.length
-          ? topups.map((t) => `<article class="content-card"><div class="content-card-head"><h3>${t.amount} FC · ${esc(t.operator)}</h3>${statusBadge(t.status)}</div><p class="content-card-meta">${formatDate(t.created_at)}</p></article>`).join("")
-          : `<p class="section-loading">Aucune recharge pour l'instant.</p>`
-      }
-    </div>
-  `;
-
-  container.querySelector("#topup-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const status = form.querySelector(".form-status");
-    const fd = new FormData(form);
-    try {
-      const proofUrl = await DB.uploadMedia(fd.get("proof"), "payment-proofs");
-      await DB.createTopup({
-        user_id: ctx.user.id,
-        operator: fd.get("operator"),
-        amount: parseFloat(fd.get("amount")),
-        proof_url: proofUrl,
-      });
-      status.textContent = "✅ Paiement envoyé, en attente de validation par l'administration.";
-      status.className = "form-status success";
-      status.classList.remove("hidden");
-      form.reset();
-      setTimeout(() => renderCaisse(container, ctx), 900);
-    } catch (err) {
-      status.textContent = "❌ " + err.message;
-      status.className = "form-status error";
-      status.classList.remove("hidden");
+    ${
+      topups.length
+        ? `<h3 class="list-title">Historique</h3><div class="card-list">${topups.map((t) => `<article class="content-card"><div class="content-card-head"><h3>${t.amount} FC</h3>${statusBadge(t.status)}</div><p class="content-card-meta">${formatDate(t.created_at)}</p></article>`).join("")}</div>`
+        : ""
     }
-  });
+  `;
 }
 
 // ---------- Vérification du compte (badge) ----------

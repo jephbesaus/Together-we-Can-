@@ -184,6 +184,173 @@ function renderSection(category, opts) {
   return (container, ctx) => renderGenericContent(container, ctx, category, opts);
 }
 
+// ---------- CLIC-BOOST ----------
+const PLATFORM_ICONS = {
+  Facebook: "📘", TikTok: "🎵", Instagram: "📸", YouTube: "▶️",
+  WhatsApp: "💬", Twitter: "✖️", X: "✖️", Telegram: "✈️",
+};
+const SERVICE_TYPE_ICONS = [
+  { match: /follow|subscri/i, icon: "👥" },
+  { match: /like|reaction/i, icon: "❤️" },
+  { match: /view/i, icon: "👁️" },
+  { match: /comment/i, icon: "💬" },
+  { match: /share/i, icon: "🔁" },
+  { match: /save/i, icon: "📥" },
+];
+function serviceIcon(name) {
+  const found = SERVICE_TYPE_ICONS.find((s) => s.match.test(name));
+  return found ? found.icon : "⚡";
+}
+
+let clicBoostAllServices = null;
+
+async function renderClicBoost(container, ctx) {
+  container.innerHTML = `<p class="section-loading">Chargement du catalogue en direct...</p>`;
+
+  let mine = [];
+  try {
+    mine = await DB.myClicBoostRequests(ctx.user.id);
+  } catch (_) {}
+
+  if (!clicBoostAllServices) {
+    try {
+      clicBoostAllServices = await DB.clicBoostFetchServices();
+    } catch (err) {
+      container.innerHTML = `<p class="section-error">Impossible de charger le catalogue : ${esc(err.message)}</p>`;
+      return;
+    }
+  }
+
+  const platforms = ["Facebook", "Instagram", "TikTok", "YouTube", "WhatsApp", "Twitter", "Telegram"];
+  const grouped = {};
+  platforms.forEach((p) => (grouped[p] = []));
+  clicBoostAllServices.forEach((s) => {
+    const cat = (s.category || "").toLowerCase();
+    const match = platforms.find((p) => cat.includes(p.toLowerCase()) || cat.includes("x (") || (p === "Twitter" && cat.includes(" x ")));
+    if (match) grouped[match].push(s);
+  });
+
+  container.innerHTML = `
+    <div class="content-card">
+      <p class="content-card-body">⚡ Boostez vos réseaux sociaux : likes, abonnés, vues, commentaires, partages — catalogue en direct.</p>
+      <p class="content-card-meta">⚠️ Vérifiez bien votre lien avant de valider — aucun remboursement après lancement.</p>
+    </div>
+
+    <div class="chip-row" id="cb-platforms">
+      ${platforms.map((p, i) => `<button class="chip platform-chip ${i === 0 ? "active" : ""}" data-platform="${p}">${PLATFORM_ICONS[p] || "🌐"} ${p}</button>`).join("")}
+    </div>
+
+    <div id="cb-services-list" class="card-list"></div>
+
+    ${!ctx.profile.is_verified ? `<div class="rules-box" style="margin-top:16px;">🔒 Passer une commande est réservé aux membres <strong>Premium ✅</strong>. Vous pouvez consulter les tarifs librement.</div>` : ""}
+
+    <h3 class="list-title">Mes commandes</h3>
+    <div class="card-list">
+      ${
+        mine.length
+          ? mine.map((r) => `<article class="content-card"><div class="content-card-head"><h3>${esc(r.platform)} — ${esc(r.service_name)}</h3>${statusBadge(r.status)}</div><p class="content-card-meta">${r.quantity} · $${r.total_usd} · ${formatDate(r.created_at)}</p></article>`).join("")
+          : `<p class="section-loading">Aucune commande pour l'instant.</p>`
+      }
+    </div>
+  `;
+
+  const listEl = container.querySelector("#cb-services-list");
+
+  function renderServiceList(platform) {
+    const services = grouped[platform] || [];
+    if (!services.length) {
+      listEl.innerHTML = `<p class="section-loading">Aucun service disponible pour ${platform} pour l'instant.</p>`;
+      return;
+    }
+    listEl.innerHTML = services
+      .slice(0, 25)
+      .map(
+        (s) => `
+      <article class="content-card cb-service-card" data-service='${JSON.stringify({ id: s.service, name: s.name, rate: s.rate, min: s.min, max: s.max }).replace(/'/g, "&apos;")}'>
+        <div class="content-card-head">
+          <h3>${serviceIcon(s.name)} ${esc(s.name)}</h3>
+          <span class="badge badge-gold">$${s.rate}/1000</span>
+        </div>
+        <p class="content-card-meta">Min: ${s.min} · Max: ${s.max}</p>
+      </article>`
+      )
+      .join("");
+
+    listEl.querySelectorAll(".cb-service-card").forEach((card) =>
+      card.addEventListener("click", () => openClicBoostOrderForm(card, JSON.parse(card.dataset.service.replace(/&apos;/g, "'")), platform, ctx, container))
+    );
+  }
+
+  container.querySelectorAll("[data-platform]").forEach((chip) =>
+    chip.addEventListener("click", () => {
+      container.querySelectorAll("#cb-platforms .chip").forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      renderServiceList(chip.dataset.platform);
+    })
+  );
+  renderServiceList(platforms[0]);
+}
+
+function openClicBoostOrderForm(card, service, platform, ctx, container) {
+  const existing = document.querySelector(".publish-sheet-overlay");
+  if (existing) existing.remove();
+
+  const sheet = document.createElement("div");
+  sheet.className = "publish-sheet-overlay";
+  sheet.innerHTML = `
+    <div class="publish-sheet">
+      <h3>${serviceIcon(service.name)} ${esc(service.name)}</h3>
+      <p class="content-card-meta">$${service.rate}/1000 · Min ${service.min} · Max ${service.max}</p>
+      <input type="url" id="cb-order-link" class="inline-form" placeholder="Lien à booster (https://...)" style="border:1.5px solid var(--twc-border);border-radius:10px;padding:11px;" required />
+      <input type="number" id="cb-order-qty" placeholder="Quantité (${service.min} - ${service.max})" min="${service.min}" max="${service.max}" style="border:1.5px solid var(--twc-border);border-radius:10px;padding:11px;margin-top:8px;" required />
+      <p class="rules-box" id="cb-order-total" style="margin-top:8px;">Entrez une quantité pour voir le total.</p>
+      <button class="btn-primary" id="cb-order-submit">🚀 Envoyer la commande</button>
+      <button class="publish-sheet-cancel">Annuler</button>
+    </div>
+  `;
+  document.body.appendChild(sheet);
+
+  const qtyInput = sheet.querySelector("#cb-order-qty");
+  const totalBox = sheet.querySelector("#cb-order-total");
+  qtyInput.addEventListener("input", () => {
+    const qty = parseInt(qtyInput.value, 10) || 0;
+    totalBox.innerHTML = `<strong>Total : $${((qty / 1000) * service.rate).toFixed(4)}</strong>`;
+  });
+
+  sheet.addEventListener("click", (e) => e.target === sheet && sheet.remove());
+  sheet.querySelector(".publish-sheet-cancel").addEventListener("click", () => sheet.remove());
+
+  sheet.querySelector("#cb-order-submit").addEventListener("click", async () => {
+    if (!ctx.profile.is_verified) {
+      alert("🔒 Passer une commande Clic-Boost est réservé aux membres Premium ✅. Rendez-vous dans « Vérifier mon compte ».");
+      return;
+    }
+    const link = sheet.querySelector("#cb-order-link").value.trim();
+    const qty = parseInt(qtyInput.value, 10);
+    if (!link || !qty || qty < service.min || qty > service.max) {
+      alert(`❌ Vérifiez le lien et la quantité (entre ${service.min} et ${service.max}).`);
+      return;
+    }
+    try {
+      await DB.createClicBoostRequest({
+        user_id: ctx.user.id,
+        platform,
+        action_type: service.name,
+        service_name: service.name,
+        service_id: String(service.id),
+        target_link: link,
+        quantity: qty,
+        total_usd: ((qty / 1000) * service.rate).toFixed(4),
+      });
+      sheet.remove();
+      alert("✅ Commande envoyée ! Elle sera lancée après validation du paiement par l'administration.");
+      renderClicBoost(container, ctx);
+    } catch (err) {
+      alert("❌ " + err.message);
+    }
+  });
+}
+
 // ---------- MARKETING ----------
 async function renderMarketing(container, ctx) {
   let mine = [];

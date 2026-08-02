@@ -12,6 +12,7 @@ async function renderAdmin(container, ctx) {
       <button class="chip" data-tab="withdrawals">Retraits</button>
       <button class="chip" data-tab="applications">Candidatures</button>
       <button class="chip" data-tab="boosts">Boosts</button>
+      <button class="chip" data-tab="clicboost">Clic-Boost</button>
       <button class="chip" data-tab="points">Points</button>
       <button class="chip" data-tab="messages">Messages</button>
     </div>
@@ -27,6 +28,7 @@ async function renderAdmin(container, ctx) {
     withdrawals: renderAdminWithdrawals,
     applications: renderAdminApplications,
     boosts: renderAdminBoosts,
+    clicboost: renderAdminClicBoost,
     points: renderAdminPoints,
     messages: renderAdminMessages,
   };
@@ -72,9 +74,73 @@ async function renderAdminPosts(body) {
   );
 }
 
+async function renderAdminClicBoost(body) {
+  body.innerHTML = `
+    <button class="btn-secondary" id="btn-check-balance" style="margin-bottom:14px;">💰 Vérifier le solde FullSMM</button>
+    <div id="cb-balance-result"></div>
+    <div id="cb-requests-list"><p class="section-loading">Chargement...</p></div>`;
+
+  document.getElementById("btn-check-balance").addEventListener("click", async () => {
+    const box = document.getElementById("cb-balance-result");
+    box.innerHTML = `<p class="section-loading">Vérification...</p>`;
+    try {
+      const bal = await DB.clicBoostBalance();
+      box.innerHTML = `<div class="content-card"><p class="content-card-body">Solde FullSMM : <strong>$${bal.balance} ${bal.currency || "USD"}</strong></p></div>`;
+    } catch (err) {
+      box.innerHTML = `<p class="section-error">${esc(err.message)}</p>`;
+    }
+  });
+
+  const listEl = document.getElementById("cb-requests-list");
+  const reqs = await DB.adminListClicBoost();
+  if (!reqs.length) {
+    listEl.innerHTML = `<p class="section-loading">Aucune commande Clic-Boost.</p>`;
+    return;
+  }
+  listEl.innerHTML = `<div class="card-list">${reqs
+    .map(
+      (r) => `<article class="content-card">
+      <div class="content-card-head"><h3>${esc(r.platform)} — ${esc(r.service_name)}</h3>${statusBadge(r.status)}</div>
+      <p class="content-card-meta">${esc(r.profiles?.full_name || "")} · ${esc(r.profiles?.phone || "")}</p>
+      <p class="content-card-meta">${r.quantity} · $${r.total_usd}</p>
+      <p class="content-card-meta"><a href="${esc(r.target_link)}" target="_blank" rel="noopener">${esc(r.target_link)}</a></p>
+      ${r.status === "en_attente" ? `<div class="content-card-actions">
+        <button class="btn-secondary" data-launch="${r.id}">🚀 Marquer lancée</button>
+        <button class="btn-secondary" data-reject="${r.id}">❌ Rejeter</button>
+      </div>` : ""}
+    </article>`
+    )
+    .join("")}</div>`;
+
+  listEl.querySelectorAll("[data-launch]").forEach((btn) =>
+    btn.addEventListener("click", async () => {
+      const req = reqs.find((r) => r.id === btn.dataset.launch);
+      btn.disabled = true;
+      btn.textContent = "Envoi en cours...";
+      try {
+        const result = await DB.clicBoostPlaceOrder(req.service_id, req.target_link, req.quantity);
+        if (result.error) throw new Error(typeof result.error === "string" ? result.error : JSON.stringify(result.error));
+        await supabaseClient
+          .from("clic_boost_requests")
+          .update({ status: "en_cours", provider_order_id: String(result.order) })
+          .eq("id", req.id);
+        renderAdminClicBoost(body);
+      } catch (err) {
+        alert("❌ Échec de l'envoi à FullSMM : " + err.message);
+        btn.disabled = false;
+        btn.textContent = "🚀 Marquer lancée";
+      }
+    })
+  );
+  body.querySelectorAll("[data-reject]").forEach((btn) =>
+    btn.addEventListener("click", async () => {
+      await DB.adminUpdateClicBoost(btn.dataset.reject, "rejetee");
+      renderAdminClicBoost(body);
+    })
+  );
+}
+
 async function renderAdminUsers(body) {
-  body.innerHTML = `<p class="section-loading">Chargement...</p>`;
-  const users = await DB.adminListUsers();
   body.innerHTML = `<div class="card-list">${users
     .map(
       (u) => `<article class="content-card" data-id="${u.id}">

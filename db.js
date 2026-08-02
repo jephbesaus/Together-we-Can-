@@ -577,6 +577,50 @@ const DB = {
     if (error) throw error;
   },
 
+  async clicBoostFetchServices() {
+    const { data, error } = await supabaseClient.functions.invoke("clicboost-api", { body: { action: "services" } });
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
+  },
+  async clicBoostPlaceOrder(serviceId, link, quantity) {
+    const { data, error } = await supabaseClient.functions.invoke("clicboost-api", {
+      body: { action: "add", service: serviceId, link, quantity },
+    });
+    if (error) throw error;
+    return data;
+  },
+  async clicBoostBalance() {
+    const { data, error } = await supabaseClient.functions.invoke("clicboost-api", { body: { action: "balance" } });
+    if (error) throw error;
+    return data;
+  },
+
+  async createClicBoostRequest(payload) {
+    const { error } = await supabaseClient.from("clic_boost_requests").insert(payload);
+    if (error) throw error;
+  },
+  async myClicBoostRequests(userId) {
+    const { data, error } = await supabaseClient
+      .from("clic_boost_requests")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+  async adminListClicBoost() {
+    const { data, error } = await supabaseClient
+      .from("clic_boost_requests")
+      .select("*, profiles!user_id(full_name, phone)")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+  async adminUpdateClicBoost(id, status) {
+    const { error } = await supabaseClient.from("clic_boost_requests").update({ status }).eq("id", id);
+    if (error) throw error;
+  },
+
   // ---------- Assistant IA (via Edge Function sécurisée) ----------
   async askAI(message) {
     const { data, error } = await supabaseClient.functions.invoke("ai-assistant", {
